@@ -23,6 +23,14 @@ BATTERY_VOLTAGE     = Pid(bytearray([0x02, 0x21, 0x10, 0x00]),              8)
 ENGINE_RPM          = Pid(bytearray([0x02, 0x21, 0x09, 0x00]),              6)
 VEHICLE_SPEED       = Pid(bytearray([0x02, 0x21, 0x0D, 0x00]),              5)
 
+# PID from https://github.com/EA2EGA/Ekaitza_Itzali
+RPM_ERROR           = Pid(bytearray([0x02, 0x21, 0x21, 0x00]),              6)
+ALL_TEMPS           = Pid(bytearray([0x02, 0x21, 0x1A, 0x00]),              20)
+THROTTLE            = Pid(bytearray([0x02, 0x21, 0x1B, 0x00]),              14)
+AAP_MAF             = Pid(bytearray([0x02, 0x21, 0x1C, 0x00]),              12)
+ALL_PRESS           = Pid(bytearray([0x02, 0x21, 0x23, 0x00]),              8)
+POWER_BAL           = Pid(bytearray([0x02, 0x21, 0x40, 0x00]),              14)   
+    
 HI = bytearray([0x01])
 LO = bytearray([0x00])
 
@@ -298,6 +306,39 @@ def start_logger():
 
         if get_pid(VEHICLE_SPEED):
             buf += " " "{:03d}".format(response[3])
+
+        #vvvv Added Data (might not work -> comment out)
+        if get_pid(RPM_ERROR):
+                buf += " " "{:06d}".format(response[3] << 8 | response[4])
+
+        if get_pid(ALL_TEMPS):
+                buf += " " "{:06.2f}".format(response[3] << 8 | response[4]/10-273.2)   #Coolant Temp
+                buf += " " "{:06.2f}".format(response[7] << 8 | response[4]/10-273.2)   #Air Temp
+                buf += " " "{:06.2f}".format(response[11] << 8 | response[12]/10-273.2) #Ext Temp
+                buf += " " "{:06.2f}".format(response[15] << 8 | response[16]/10-273.2) #Fuel Temp
+
+        if get_pid(THROTTLE):
+                buf += " " "{:06.2f}".format(response[3] << 8 | response[4]/1000)  #P1
+                buf += " " "{:06.2f}".format(response[5] << 8 | response[6]/1000)  #P2
+                buf += " " "{:06.2f}".format(response[7] << 8 | response[8]/1000)  #P3
+                buf += " " "{:06.2f}".format(response[9] << 8 | response[10]/1000) #P4
+                buf += " " "{:06.2f}".format(response[11]<< 8 | response[12]/1000) #Supply
+        
+        if get_pid(AAP_MAF):
+                buf += " " "{:06.2f}".format(response[3] << 8 | response[4]/10000) #AAP
+                buf += " " "{:06.2f}".format(response[7] << 8 | response[8]/1000)  #MAF
+
+        if get_pid(ALL_PRESS):
+                buf += " " "{:06.2f}".format(response[3] << 8 | response[4]/10000) #AP1
+                buf += " " "{:06.2f}".format(response[5] << 8 | response[6]/10000) #AP2
+
+        if get_pid(POWER_BAL):
+                buf += " " "{:06.2f}".format(response[3] << 8 | response[4]/1000)  #Pb1 #TODO if pb1>32768: pb1=pb1-65537
+                buf += " " "{:06.2f}".format(response[5] << 8 | response[6]/1000)  #Pb2
+                buf += " " "{:06.2f}".format(response[7] << 8 | response[8]/1000)  #Pb3
+                buf += " " "{:06.2f}".format(response[9] << 8 | response[10]/1000) #Pb4
+                buf += " " "{:06.2f}".format(response[11]<< 8 | response[12]/1000) #Pb5
+        #^^^^ end of Added Data
         
         print(buf)
         
