@@ -2,6 +2,7 @@ from pyftdi.ftdi import Ftdi
 from datetime import datetime
 import time
 from collections import namedtuple
+import TD5
 
 CAUTIOUS_READ           = False
 READ_BUFFER_SIZE        = 127
@@ -30,7 +31,10 @@ ALL_TEMPS           = Pid(bytearray([0x02, 0x21, 0x1A, 0x00]),              20)
 THROTTLE            = Pid(bytearray([0x02, 0x21, 0x1B, 0x00]),              14)
 AAP_MAF             = Pid(bytearray([0x02, 0x21, 0x1C, 0x00]),              12)
 ALL_PRESS           = Pid(bytearray([0x02, 0x21, 0x23, 0x00]),              8)
-POWER_BAL           = Pid(bytearray([0x02, 0x21, 0x40, 0x00]),              14)   
+POWER_BAL           = Pid(bytearray([0x02, 0x21, 0x40, 0x00]),              14)
+
+# Other commands
+READ_FAULTS          = Pid(bytearray([0x02, 0x21, 0x3b, 0x00]),              39)
     
 HI = bytearray([0x01])
 LO = bytearray([0x00])
@@ -347,6 +351,37 @@ def start_logger():
             #^^^^ end of Added Data
             log_file.write(buf + "\n")
             print(buf)
+
+
+################################################################################
+def read_errors(): #TODO: test this function
+    if not connected:
+        return
+    
+    fault_list=[]
+    if get_pid(READ_FAULTS):
+        for i in range(0,36):
+            for j in range(0,8):
+                if ord(response[i+3]) & int(pow(2,int(j))) != 0:
+                    fault_list.append(int(i)*8+int(j))
+
+        for error in fault_list:
+            #highb=(error/8)+1
+            #lowb=(error%8)+1
+            try:
+                #print "\t",error, " ",highb,"-",lowb," ",fault_code_text[error]
+                print("\t",error, " ",TD5.fault_code_text[error])
+            except:
+                print("Cannot read faults")
+    
+    return True
+################################################################################
+
+################################################################################
+def clear_errors(): #TODO: implement this function
+    if not connected:
+        return
+################################################################################
         
 ################################################################################
 if __name__ == "__main__":
@@ -360,4 +395,6 @@ if __name__ == "__main__":
     open_uart()
     fast_init()      
     start_logger()
+    #read_errors()
+    #clear_errors()
 
