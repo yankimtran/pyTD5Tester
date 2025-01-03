@@ -365,15 +365,30 @@ def read_errors(): #TODO: test this function
                 if ord(response[i+3]) & int(pow(2,int(j))) != 0:
                     fault_list.append(int(i)*8+int(j))
 
-        for error in fault_list:
-            #highb=(error/8)+1
-            #lowb=(error%8)+1
-            try:
-                #print "\t",error, " ",highb,"-",lowb," ",fault_code_text[error]
-                print("\t",error, " ",TD5.fault_code_text[error])
-            except:
-                print("Cannot read faults")
-    
+        # Prépare le fichier de log
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        log_filename = f"fault_log_{timestamp}.txt"
+
+        try:    
+            with open(log_filename, "w") as log_file:
+                log_file.write("Detected Faults:\n")    
+                for error in fault_list:
+                    #highb=(error/8)+1
+                    #lowb=(error%8)+1
+                    try:
+                        #print "\t",error, " ",highb,"-",lowb," ",fault_code_text[error]
+                        #print("\t",error, " ",TD5.fault_code_text[error])
+                        #error_description = TD5.fault_code_text.get(error, "Unknown error")
+                        error_description = TD5.fault_code_text[error]
+                        log_line = f"Error {error}: {error_description}\n"
+                        print(log_line.strip())  # Affiche également dans la console
+                        log_file.write(log_line)
+                    except:
+                        print("Cannot read faults")
+                        log_file.write(f"Cannot read fault {error}: {str(e)}\n")
+        except Exception as e:
+            print(f"Failed to write log file: {str(e)}")
+
     return True
 ################################################################################
 
