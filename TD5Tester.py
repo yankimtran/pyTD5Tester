@@ -35,6 +35,7 @@ POWER_BAL           = Pid(bytearray([0x02, 0x21, 0x40, 0x00]),              14)
 
 # Other commands
 READ_FAULTS          = Pid(bytearray([0x02, 0x21, 0x3b, 0x00]),              39)
+CLEAR_FAULTS         = Pid(bytearray([0x14, 0x31, 0xdd, 0x00]),              4)                 
     
 HI = bytearray([0x01])
 LO = bytearray([0x00])
